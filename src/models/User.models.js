@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const userSchema=new Schema({
+const userSchema = new mongoose.Schema({
     watchHistory:[
        { type : mongoose.Schema.Types.ObjectId,
         ref:"Video",
@@ -33,7 +33,7 @@ const userSchema=new Schema({
     },
     coverimage:{
         type:String,  //coloudinary url
-        required:true,
+       
     },
     password:{
         type:String,
@@ -48,7 +48,7 @@ const userSchema=new Schema({
 userSchema.pre("save",async function(next){
     if(this.isModified("password"))
     {
-        this.password=bcrypt.hash(this.password,10)
+        this.password= bcrypt.hash(this.password,10)
         next();
     }
 })//password check logic
