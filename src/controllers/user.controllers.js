@@ -87,6 +87,83 @@ const registerUser= asyncHandler( async(req,res)=>{
    
    
 })
+
+
+
+//creating a method for generating Access and Refresh Tokens
+const generateAccessAndRefreshToken= async(userId)=>{
+    try {
+        const user=await User.findById(userId);
+        const accessToken=generateAccessToken();
+        const refreshToken=generateRefreshToken();
+
+        //saving refresh token in db
+        user.refreshtokens=refreshToken;
+
+        return {accessToken,refreshToken};
+
+    } catch (error) {
+        throw new ApiError(500,"something wents wrong while generating Access and Refresh token")
+    }
+}
+
+
+
+const loginUser=asyncHandler( async(req,res)=>{
+    //steps or algorithm for login 
+    //1fetch data from request body
+    //2check username or email
+    //3find user
+    //4check password
+    //5generate access and refresh tokens 
+    //6send cookies
+    //7response of successfull login
+
+    //step1.
+    const { username,email,password}= req.body
+
+    //step2.
+    if(!username || !email){
+        throw new ApiError(400,"username or email required !")
+    }
+    //step3.
+    const user=User.findOne({
+        $or:[{username},{email}]
+    })
+    if(!user){
+        throw new ApiError(400,"User doesnt exists")
+    }
+    //step4.
+    const isPasswordValid=await User.isPasswordCorrect(password);
+    if(!isPasswordValid){
+        throw new ApiError(400,"Invalid User Credentials")
+    }
+    //step5.
+    const {accessToken,refreshToken}=await generateAccessAndRefreshToken(user._id)
+
+    //step6. sending cookies
+
+    const loggedInUser= await User.findById(user._id).select("-password -refreshtoken")//removing password and refreshtoken from cookie
+
+    const options={
+        httpOnly:true,
+        secure:true
+    }
+    return res.status(200)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user:loggedInUser,accessToken,refreshToken
+            },
+            "User logged In Successfully"
+        )
+    )
+
+
+})
 export {
-    registerUser,
+    registerUser,loginUser
 };
