@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
         required:true,
         unique:true,
         lowercase:true,
-        index:true
+        
     },
     email:{
         type:String,
@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
     },
     fullname:{
         type:String,
-        required:true,
+        
     },
     avatar:{
         type:String , //coloudinary url
@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema({
     },
     refreshtokens:{
         type:String,
-        required:true,
+        
     }
 },{timestamps:true})
 //encrypting and decrypting password logic
