@@ -17,6 +17,8 @@ app.use(express.static("public"))
 
 app.use(cookieparser())
 
+app.use(express.urlencoded({extended: true, limit: "16kb"})) // Add this middleware for URL-encoded form data
+
 //import route from user.routes.js
 import userRouter from "./routes/user.routes.js"
 //route declaration

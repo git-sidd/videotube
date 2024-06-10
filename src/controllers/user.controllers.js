@@ -4,6 +4,7 @@ import { User } from "../models/User.models.js";
 import { uploadOnCloudinary } from "../models/Cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+
 const registerUser= asyncHandler( async(req,res)=>{
 
     //steps or algorithm
@@ -25,6 +26,7 @@ const registerUser= asyncHandler( async(req,res)=>{
         throw new ApiError(400,"fullname required")
     }*/
     //professionals:
+    // console.log("username:",username)
     if(
         [fullname,email,username,password].some((field)=>
         field?.trim()===""
@@ -52,7 +54,7 @@ const registerUser= asyncHandler( async(req,res)=>{
 
     const avatar=await uploadOnCloudinary(avatarLocalPath)
     const coverimage=await uploadOnCloudinary(coverimageLocalPath)
-    console.log(avatar);
+    //console.log(avatar);
 
     if(!avatar){
         throw new ApiError(400,"Avatar file REQUIRED")
@@ -94,12 +96,12 @@ const registerUser= asyncHandler( async(req,res)=>{
 const generateAccessAndRefreshToken= async(userId)=>{
     try {
         const user=await User.findById(userId);
-        const accesstoken=generateAccessToken();
-        const refreshtoken=generateRefreshToken();
+        const accesstoken=user.generateAccessToken();
+        const refreshtoken=user.generateRefreshToken();
 
         //saving refresh token in db
         user.refreshtoken=refreshtoken;
-
+        //console.log(refreshtoken)
         return {accesstoken,refreshtoken};
 
     } catch (error) {
@@ -108,8 +110,8 @@ const generateAccessAndRefreshToken= async(userId)=>{
 }
 
 
-
-const loginUser=asyncHandler( async(req,res)=>{
+const loginUser = asyncHandler( async (req,res)=>{
+    //console.log('Request body:', req.body);
     //steps or algorithm for login 
     //1fetch data from request body
     //2check username or email
@@ -120,21 +122,26 @@ const loginUser=asyncHandler( async(req,res)=>{
     //7response of successfull login
 
     //step1.
-    const { username,email,password}= req.body
+    const {email,username,password}=req.body;
 
     //step2.
-    if(!(username || email)){
+    // console.log("email:",email)
+    if(!username && !email) {
+        
         throw new ApiError(400,"username or email required !")
     }
+    // if(!email){
+    //     throw new ApiError(400,"username or email required !")
+    // }
     //step3.
-    const user=User.findOne({
+    const user=await User.findOne({
         $or:[{username},{email}]
     })
     if(!user){
         throw new ApiError(400,"User doesnt exists")
     }
     //step4.
-    const isPasswordValid=await User.isPasswordCorrect(password);
+    const isPasswordValid=await user.isPasswordCorrect(password);
     if(!isPasswordValid){
         throw new ApiError(400,"Invalid User Credentials")
     }
@@ -165,7 +172,7 @@ const loginUser=asyncHandler( async(req,res)=>{
 
 })
 
-const logoutUser=asyncHandler(async()=>{
+const logoutUser=asyncHandler(async(req,res)=>{
     User.findByIdAndUpdate(
         req.user._id,
         {
@@ -183,8 +190,8 @@ const logoutUser=asyncHandler(async()=>{
     }
     return res
     .status(200)
-    .clearcookie("accesstoken",options)
-    .clearcookie("refreshtoken",options)
+    .clearCookie("accesstoken",options)
+    .clearCookie("refreshtoken",options)
     .json(new ApiResponse(200,{},"User Logged out"))
 }) 
 export {
