@@ -13,7 +13,7 @@ cloudinary.config({
     try {
         if(!localFilePath) return null;
         const response=await cloudinary.uploader.upload(localFilePath, {
-            resource_type:"image"
+            resource_type:"auto"
         })
         //file has been uploaded successfully
         //console.log("File is uploaded on Cloudinary",response.url);
